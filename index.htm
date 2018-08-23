@@ -1,0 +1,167 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Sixteen Segment Display - Demo</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="jquery-1.9.1.min.js"></script>
+    <script src="segment.min.js"></script>
+    <script>
+        var settings = {
+            X : 0,
+            Y : 0,
+            SegmentWidth : 0.12,
+            BevelWidth : 0.49,
+            SegmentInterval : 0.025,
+            SideBevelEnabled : false,
+            Padding : 15,
+            Spacing : 10,
+            FillLight : '#9eff0d',
+            FillDark : '#0c1401',
+            StrokeLight : '#ff0000',
+            StrokeDark : '#550000',
+            StrokeWidth : 0
+        };
+
+        window.onload = function () {
+            "use strict";
+            // Set the canvas size to fill its container
+            var canvas = document.getElementById('c');
+            var container = document.getElementById('container');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            // Create a new sixteen segment display
+            var segment = new SixteenSegment(1, canvas);
+
+            // When the inputs change update the display
+            $("input").keyup(function() { update(segment); });
+            $("input").change(function() { update(segment); });
+
+            // Initialize the segment settings and input controls
+            settings.Width = canvas.width;
+            settings.Height = canvas.height;
+            for (var s in settings){ 
+                segment[s] = settings[s];
+            }
+            init(segment);
+            update(segment);
+        }
+
+        // Update the Segment Display settings
+        function update(segment) {
+            "use strict";
+            // Clear the canvas in case the display is resized
+            var canvas = document.getElementById('c');
+            canvas.width = canvas.width;
+
+            // Set the display properties and update the display
+            segment.Width = parseFloat($("#rangeWidth").val());
+            segment.Height = parseFloat($("#rangeHeight").val());
+            segment.X = parseFloat($("#rangeX").val());
+            segment.Y = parseFloat($("#rangeY").val());
+            segment.SetCount(parseInt($("#numberElements").val()));
+            segment.SegmentWidth = parseFloat($("#rangeSegmentWidth").val());
+            segment.BevelWidth = parseFloat($("#rangeBevel").val());
+            segment.SegmentInterval = parseFloat($("#rangeInterval").val());
+            segment.SideBevelEnabled = $("#checkBevel").is(':checked');
+            segment.Padding = parseFloat($("#rangePadding").val());
+            segment.Spacing = parseFloat($("#rangeSpacing").val());
+            segment.FillLight = $("#colorLight").val();
+            //segment.FillDark = $("#colorDark").val();
+            segment.FillDark = SegmentCanvas.LerpColor(segment.FillLight, "#000000", .92);
+            segment.StrokeLight = $("#strokeLight").val();
+            segment.StrokeDark = $("#strokeDark").val();
+            segment.StrokeWidth = parseFloat($("#rangeLine").val());
+            segment.DispayText($("#textInput").val().toUpperCase());
+            
+            // Output the display settings
+            var outstring = [];
+            for(var s in settings){
+                var setting = segment[s];
+                var q = (typeof setting == 'string' || setting instanceof String)? "'" : "";
+                outstring.push(s + ' : ' + q + segment[s] + q); 
+            }
+            $("#code").html(outstring.join(",\n"));
+        }
+
+        function init(segment){
+            $("#rangeWidth").val(segment.Width);
+            $("#rangeHeight").val(segment.Height);
+            $("#rangeX").val(segment.X);
+            $("#rangeY").val(segment.Y);
+            $("#rangeSegmentWidth").val(segment.SegmentWidth);
+            $("#rangeBevel").val(segment.BevelWidth);
+            $("#rangeInterval").val(segment.SegmentInterval);
+            $("#checkBevel").prop('checked', segment.SideBevelEnabled);
+            $("#rangePadding").val(segment.Padding);
+            $("#rangeSpacing").val(segment.Spacing);
+            $("#colorLight").val(segment.FillLight);
+            $("#colorDark").val(segment.FillDark);
+            $("#strokeLight").val(segment.StrokeLight);
+            $("#strokeDark").val(segment.StrokeDark);
+            $("#rangeLine").val(segment.StrokeWidth);
+        }
+    </script>
+</head>
+<body>
+<div id="wrapper">
+    <div id="output">
+        <div id="container"><canvas id="c"></canvas></div>
+        <pre id="code"></pre>
+        <div id="link"></div>
+    </div>
+    <form id="controls">
+    <fieldset>
+        <label for="textInput">Text</label>
+        <input id="textInput" type="text" value="" />
+        <label for="rangePadding">Padding</label>
+        <input id="rangePadding" type="range" step="1" max="50" min="0" value="15" />
+        <label for="rangeSpacing">Spacing</label>
+        <input id="rangeSpacing" type="range" step="1" max="50" min="0" value="10" />
+        <label for="numberElements"># of Elements</label>
+        <input id="numberElements" type="number" value="6" />
+    </fieldset>
+    <fieldset>
+        <legend>Shape</legend>
+        <label for="rangeSegmentWidth">Segment Width</label>
+        <input id="rangeSegmentWidth" type="range" step="0.01" max="0.3" min="0" value="0.13" />
+        <label for="rangeBevel">Bevel</label>
+        <input id="rangeBevel" type="range" step="0.01" max="1" min="0" value="0.35" />
+        <label for="rangeInterval">Interval</label>
+        <input id="rangeInterval" type="range" step="0.005" max="0.15" min="0" value="0.02" />
+    </fieldset>
+    <fieldset>
+        <legend>Color</legend>  
+        <label for="colorLight">Fill Light</label>
+        <input id="colorLight" type="color" value="#CDF728" />
+        <label for="colorDark">Fill Dark</label>
+        <input id="colorDark" type="color" value="#0b1500" />
+        <label for="rangeLine">Stroke Width</label>
+        <input id="rangeLine" type="range" step="0.1" max="10" min="0" value="0" />
+        <label for="strokeLight">Stroke Light</label>
+        <input id="strokeLight" type="color" value="#FF0000" />
+        <label for="strokeDark">Stroke Dark</label>
+        <input id="strokeDark" type="color" value="#550000" />
+    </fieldset>
+    <fieldset>
+        <legend>Position</legend>
+        <label for="rangeWidth">Width</label>
+        <input id="rangeWidth" type="range" step="1" max="1000" min="0" value="500" />
+        <label for="rangeHeight">Height</label>
+        <input id="rangeHeight" type="range" step="1" max="1000" min="0" value="200" />
+        <label for="rangeX">X</label>
+        <input id="rangeX" type="range" step="1" max="500" min="0" value="0" />
+        <label for="rangeY">Y</label>
+        <input id="rangeY" type="range" step="1" max="200" min="0" value="0" />
+    </fieldset>
+	<fieldset>
+		<div class="footer">Created by Codemaker 2018</div>
+	</fieldset>
+    </form>
+	
+</div>
+	
+</body>
+</html>
